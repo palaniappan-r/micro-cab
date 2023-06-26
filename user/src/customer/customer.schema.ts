@@ -23,8 +23,8 @@ import { minLength } from 'class-validator';
 export const CustomerSchema = new mongoose.Schema<ICustomer>(
   {
     customerId: {
-      type: 
-    }
+      type: String
+    },
     name: {
       type : String,
       required : [true, "Name cannot be empty"],
