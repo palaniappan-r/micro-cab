@@ -10,7 +10,8 @@ export class CustomerService {
     constructor(@InjectModel('Customer') private customerModel:Model<ICustomer>) {}
 
     public async getCustomerById(customerId : string) : Promise<ICustomer> {
-        const existingCustomer = await this.customerModel.findById(customerId)
+        const customerObject = await this.customerModel.findOne({'customerId' : customerId})
+        const existingCustomer = await this.customerModel.findById(customerObject._id)
         return existingCustomer
     }
 

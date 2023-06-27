@@ -10,8 +10,9 @@ export class CustomerController {
     constructor(private readonly customerService: CustomerService) { }
 
   @MessagePattern('get_cust')
-  public async getCustomerById() : Promise<string> {
-    return "User cust microservice running"
+  public async getCustomerById(customerId : string) : Promise<ICustomer> {
+    const existingCustomer = await this.customerService.getCustomerById(customerId)
+    return existingCustomer
   }
 
   @MessagePattern('create_cust')
