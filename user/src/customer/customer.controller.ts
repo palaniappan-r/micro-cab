@@ -2,7 +2,7 @@ import { Controller } from '@nestjs/common';
 
 import { MessagePattern } from '@nestjs/microservices';
 import { ICustomer } from './customer.interface';
-import { CreateCustomerDto } from './dto/create.customer.dto';
+import { CreateCustomerDto, UpdateCustomerDto } from './dto/create.customer.dto';
 import { CustomerService } from './customer.service';
 
 @Controller('customer')
@@ -19,6 +19,18 @@ export class CustomerController {
     const newCustomer = await this.customerService.createCustomer(createCustomerDto)
     newCustomer.save()
     return newCustomer
+  }
+
+  @MessagePattern('update_cust')
+  public async updateCustomerById(payload){
+    const updateCustomer = await this.customerService.updateCustomerById(payload[0], payload[1])
+    return updateCustomer
+  }
+
+  @MessagePattern('delete_cust')
+  public async deleteCustomerById(customerId : string) : Promise<ICustomer> {
+    const deletedCustomer = await this.customerService.deleteCustomerById(customerId)
+    return deletedCustomer
   }
 
 }
