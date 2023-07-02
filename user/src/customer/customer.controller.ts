@@ -23,7 +23,8 @@ export class CustomerController {
   }
 
   @MessagePattern('update_cust')
-  public async updateCustomerById(payload){
+  //To-Do : add type for payload here
+  public async updateCustomerById(payload) : Promise<ICustomer>{
     const updateCustomer = await this.customerService.updateCustomerById(payload[0], payload[1])
     return updateCustomer
   }
