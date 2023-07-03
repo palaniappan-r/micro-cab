@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@nestjs/microservices": "^10.0.3",
     "pnpm": "^8.6.5"
   }
 }
