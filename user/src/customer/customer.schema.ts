@@ -3,7 +3,6 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import mongoose from 'mongoose';
 import { ICustomer } from './customer.interface';
-import { minLength } from 'class-validator';
 
 // Schemas can be created like this using SchemaFactory as well
 // @Schema()
@@ -33,10 +32,11 @@ export const CustomerSchema = new mongoose.Schema<ICustomer>(
     email: {
       type: String,
       required: [true, 'Email can not be empty'],
+      unique : true,
       match: [
         /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
         'Email should be valid',
-      ],
+      ]
     },
     password: {
       type: String,

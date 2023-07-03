@@ -8,8 +8,18 @@ export class UserController {
     @Inject('USER_SERVICE') private readonly userServiceClient: ClientProxy
     ) {}
 
-  @Get('/customer')
-  public async getTest(@Res() response , @Query() params : any): Promise<any> {
+  @Get('/customer/getAll')
+  public async getAllCustomers(@Res() response): Promise<any> {
+    let data = await firstValueFrom(this.userServiceClient.send('get_all_cust' , ""))
+    {
+      return response.status(HttpStatus.FOUND).json({
+        message: 'Customers have been found',
+        data});
+    }
+  }
+
+  @Get('/customer/findById')
+  public async getCustomer(@Res() response , @Query() params : any): Promise<any> {
     let data = await firstValueFrom(this.userServiceClient.send('get_cust' , params.customerId))
     {
       return response.status(HttpStatus.FOUND).json({
@@ -18,7 +28,7 @@ export class UserController {
     }
   }
 
-  @Post('/customer')
+  @Post('/customer/create')
   public async createStudent(@Res() response, @Body() createCustomerDto) : Promise<any>{
     let data = await firstValueFrom(this.userServiceClient.send('create_cust' , createCustomerDto))
     {
@@ -28,8 +38,10 @@ export class UserController {
     }
   }
 
-  @Put('/customer')
+  //To-Do : only update the logged in user
+  @Put('/customer/update')
   public async updateCustomerById(@Res() response, @Body() updateCustomerDto , @Query() params : any) : Promise<any>{
+    //For now, the customerId is passed as a query param, later, it'll be taken from the auth cookie
     const payload = [updateCustomerDto , params.customerId]
     let data = await firstValueFrom(this.userServiceClient.send('update_cust' , payload))
     {
@@ -40,7 +52,7 @@ export class UserController {
   }
 
   //To-Do : Chk if user is logged in first
-  @Delete('/customer')
+  @Delete('/customer/delete')
   public async deleteCustomerBuId(@Res() response, @Query() params : any) : Promise<any>{
     let data = await firstValueFrom(this.userServiceClient.send('delete_cust' , params.customerId))
     {
