@@ -9,6 +9,12 @@ import { CustomerService } from './customer.service';
 export class CustomerController {
     constructor(private readonly customerService: CustomerService) { }
 
+  @MessagePattern('get_all_cust')
+  public async getAllCustomers() : Promise<ICustomer[]> {
+    const allCustomers : ICustomer[] = await this.customerService.getAllCustomers()
+    return allCustomers
+  }
+
   @MessagePattern('get_cust')
   public async getCustomerById(customerId : string) : Promise<ICustomer> {
     const existingCustomer = await this.customerService.getCustomerById(customerId)

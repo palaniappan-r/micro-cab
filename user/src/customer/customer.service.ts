@@ -9,6 +9,11 @@ import {v4 as uuidv4} from 'uuid';
 export class CustomerService {
     constructor(@InjectModel('Customer') private customerModel:Model<ICustomer>) {}
 
+    public async getAllCustomers() : Promise<ICustomer[]> {
+        const customerObject = await this.customerModel.find({})
+        return customerObject
+    }
+
     public async getCustomerById(customerId : string) : Promise<ICustomer> {
         const customerObject = await this.customerModel.findOne({'customerId' : customerId})
         const existingCustomer = await this.customerModel.findById(customerObject._id)
