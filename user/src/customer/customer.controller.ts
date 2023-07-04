@@ -7,10 +7,12 @@ import { CustomerService } from './customer.service';
 
 @Controller('customer')
 export class CustomerController {
-    constructor(private readonly customerService: CustomerService) { }
+    constructor(
+      private readonly customerService: CustomerService,
+      ) { }
 
   @MessagePattern('get_all_cust')
-  public async getAllCustomers() : Promise<ICustomer[]> {
+  public async getAllCustomers() : Promise<any> {
     const allCustomers : ICustomer[] = await this.customerService.getAllCustomers()
     return allCustomers
   }
@@ -39,6 +41,12 @@ export class CustomerController {
   public async deleteCustomerById(customerId : string) : Promise<ICustomer> {
     const deletedCustomer = await this.customerService.deleteCustomerById(customerId)
     return deletedCustomer
+  }
+  
+  @MessagePattern('login_cust')
+  public async loginCustomer(customerId : string) : Promise<any> {
+    const token = await this.customerService.loginCustomer(customerId)
+    return token
   }
 
 }
