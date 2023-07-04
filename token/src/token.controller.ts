@@ -8,8 +8,8 @@ export class TokenController {
     constructor(private readonly tokenService: TokenService) { }
 
     @MessagePattern('create_token')
-    public createToken(userId : string , role : string) : string {
-        const token : string = this.tokenService.createToken(userId , role)
+    public createToken(payload : string[]) : string {
+        const token : string = this.tokenService.createToken(payload[0] , payload[1])
         return token
     }
 

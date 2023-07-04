@@ -1,5 +1,6 @@
 import { Controller, Get , Inject , Post , Put , Delete, Res , Body , HttpStatus , Param, Query} from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
+import { response } from 'express';
 import { firstValueFrom } from 'rxjs';
 
 @Controller('user')
@@ -8,6 +9,16 @@ export class UserController {
     @Inject('USER_SERVICE') private readonly userServiceClient: ClientProxy
     ) {}
 
+  @Get('/customer/login')
+  public async test(@Res() response , @Query() params : any): Promise<any> {
+    let data = await firstValueFrom(this.userServiceClient.send('login_cust' , params.customerId))
+    {
+      return response.status(HttpStatus.FOUND).json({
+        message: 'Customer has been logged in',
+        data});
+    }
+  }
+  
   @Get('/customer/getAll')
   public async getAllCustomers(@Res() response): Promise<any> {
     let data = await firstValueFrom(this.userServiceClient.send('get_all_cust' , ""))

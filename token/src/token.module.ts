@@ -1,9 +1,19 @@
 import { Module } from '@nestjs/common';
 import { TokenController } from './token.controller';
-import { MongooseModule } from '@nestjs/mongoose';
+import { TokenService } from './token.service';
 
+import { JwtModule } from '@nestjs/jwt';
+import { jwtConstants } from './constants';
 
 @Module({
-  controllers: [TokenController]
+  imports: [
+    JwtModule.register({
+      global: true,
+      secret: jwtConstants.secret,
+      signOptions: { expiresIn: '60s' },
+    })
+  ],
+  controllers: [TokenController],
+  providers: [TokenService],
 })
 export class TokenModule {}
