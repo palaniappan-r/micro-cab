@@ -1,9 +1,4 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-
-import * as bcrypt from 'bcrypt';
-import mongoose from 'mongoose';
-import { ICustomer } from './customer.interface';
-
+// import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 // Schemas can be created like this using SchemaFactory as well
 // @Schema()
 // export class Customer {
@@ -18,6 +13,10 @@ import { ICustomer } from './customer.interface';
 // }
 
 // export const CustomerSchema = SchemaFactory.createForClass(Customer);
+import * as bcrypt from 'bcrypt';
+import mongoose from 'mongoose';
+import { ICustomer } from './customer.interface';
+
 
 export const CustomerSchema = new mongoose.Schema<ICustomer>(
   {

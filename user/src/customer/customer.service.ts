@@ -1,13 +1,19 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { CreateCustomerDto , UpdateCustomerDto } from './dto/create.customer.dto';
 import { ICustomer } from './customer.interface';
 import { Model } from 'mongoose';
 import {v4 as uuidv4} from 'uuid';
+import { firstValueFrom } from 'rxjs';
+
+import { ClientProxy } from '@nestjs/microservices';
 
 @Injectable()
 export class CustomerService {
-    constructor(@InjectModel('Customer') private customerModel:Model<ICustomer>) {}
+    constructor(
+        @InjectModel('Customer') private customerModel:Model<ICustomer>,
+        @Inject('TOKEN_SERVICE') private readonly tokenService: ClientProxy
+        ) {}
 
     public async getAllCustomers() : Promise<ICustomer[]> {
         const customerObject = await this.customerModel.find({})
@@ -16,8 +22,7 @@ export class CustomerService {
 
     public async getCustomerById(customerId : string) : Promise<ICustomer> {
         const customerObject = await this.customerModel.findOne({'customerId' : customerId})
-        const existingCustomer = await this.customerModel.findById(customerObject._id)
-        return existingCustomer
+        return customerObject
     }
 
     public async createCustomer(createCustomerReq : CreateCustomerDto) : Promise<ICustomer> {
@@ -41,5 +46,10 @@ export class CustomerService {
             const deletedCustomer = await this.customerModel.findByIdAndDelete(customerObject._id)
             return deletedCustomer
         }
+    }
+
+    public async loginCustomer(customerId : string) : Promise<any> {
+        const token = await firstValueFrom(this.tokenService.send("create_token" , [customerId , "customer"]))
+        return (token)
     }
 }
