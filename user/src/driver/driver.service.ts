@@ -7,6 +7,7 @@ import {v4 as uuidv4} from 'uuid';
 import { firstValueFrom } from 'rxjs';
 
 import { ClientProxy } from '@nestjs/microservices';
+import { GeoJsonTypes } from 'geojson';
 
 @Injectable()
 export class DriverService {
@@ -21,7 +22,7 @@ export class DriverService {
     }
 
     //To-Do : only return driver in a set km radius
-    public async getOpenDrivers(radius : number) : Promise<IDriver[]> {
+    public async getOpenDrivers(radius : number , currentLoc : any) : Promise<IDriver[]> {
         const driverObject = await this.driverModel.find({'status' : true})
         return driverObject
     }

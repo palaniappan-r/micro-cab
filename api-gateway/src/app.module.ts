@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { UserController } from './user.controller';
+import { CustomerController } from './customer.controller';
 
 import { Transport, ClientsModule } from '@nestjs/microservices';
 
@@ -9,7 +9,7 @@ import { Transport, ClientsModule } from '@nestjs/microservices';
       { name: 'USER_SERVICE', transport: Transport.TCP, options: { host: '0.0.0.0', port: 3011 } }
     ])
   ],
-  controllers: [UserController],
+  controllers: [CustomerController],
   providers: [],
 })
 export class AppModule {}

@@ -1,15 +1,14 @@
 import { Controller, Get , Inject , Post , Put , Delete, Res , Body , HttpStatus , Param, Query} from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
-import { response } from 'express';
 import { firstValueFrom } from 'rxjs';
 
-@Controller('user')
-export class UserController {
+@Controller('customer')
+export class CustomerController {
   constructor(
     @Inject('USER_SERVICE') private readonly userServiceClient: ClientProxy
     ) {}
 
-  @Get('/customer/login')
+  @Get('/login')
   public async test(@Res() response , @Query() params : any): Promise<any> {
     let data = await firstValueFrom(this.userServiceClient.send('login_cust' , params.customerId))
     {
@@ -19,7 +18,7 @@ export class UserController {
     }
   }
   
-  @Get('/customer/getAll')
+  @Get('/getAll')
   public async getAllCustomers(@Res() response): Promise<any> {
     let data = await firstValueFrom(this.userServiceClient.send('get_all_cust' , ""))
     {
@@ -29,7 +28,7 @@ export class UserController {
     }
   }
 
-  @Get('/customer/findById')
+  @Get('/findById')
   public async getCustomer(@Res() response , @Query() params : any): Promise<any> {
     let data = await firstValueFrom(this.userServiceClient.send('get_cust' , params.customerId))
     {
@@ -39,7 +38,7 @@ export class UserController {
     }
   }
 
-  @Post('/customer/create')
+  @Post('/create')
   public async createStudent(@Res() response, @Body() createCustomerDto) : Promise<any>{
     let data = await firstValueFrom(this.userServiceClient.send('create_cust' , createCustomerDto))
     {
@@ -50,7 +49,7 @@ export class UserController {
   }
 
   //To-Do : only update the logged in user
-  @Put('/customer/update')
+  @Put('/update')
   public async updateCustomerById(@Res() response, @Body() updateCustomerDto , @Query() params : any) : Promise<any>{
     //For now, the customerId is passed as a query param, later, it'll be taken from the auth cookie
     const payload = [updateCustomerDto , params.customerId]
@@ -63,7 +62,7 @@ export class UserController {
   }
 
   //To-Do : Chk if user is logged in first
-  @Delete('/customer/delete')
+  @Delete('/delete')
   public async deleteCustomerBuId(@Res() response, @Query() params : any) : Promise<any>{
     let data = await firstValueFrom(this.userServiceClient.send('delete_cust' , params.customerId))
     {

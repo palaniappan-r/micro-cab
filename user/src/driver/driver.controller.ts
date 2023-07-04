@@ -4,6 +4,7 @@ import { MessagePattern } from '@nestjs/microservices';
 import { IDriver } from './driver.interface';
 import { CreateDriverDto, UpdateDriverDto } from './driver.dto';
 import { DriverService } from './driver.service';
+import { GeoJsonTypes } from 'geojson';
 
 @Controller('driver')
 export class DriverController {
@@ -18,8 +19,8 @@ export class DriverController {
   }
 
   @MessagePattern('get_open_drivers')
-  public async getOpenDrivers(radius : number) : Promise<IDriver[]> {
-    const openDrivers : IDriver[] = await this.driverService.getOpenDrivers(radius)
+  public async getOpenDrivers(radius : number , currentLoc : any) : Promise<IDriver[]> {
+    const openDrivers : IDriver[] = await this.driverService.getOpenDrivers(radius , currentLoc)
     return openDrivers
   }
 
