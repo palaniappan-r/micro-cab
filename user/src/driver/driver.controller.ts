@@ -12,9 +12,15 @@ export class DriverController {
       ) { }
 
   @MessagePattern('get_all_drivers')
-  public async getAllDrivers() : Promise<any> {
+  public async getAllDrivers() : Promise<IDriver[]> {
     const allDrivers : IDriver[] = await this.driverService.getAllDrivers()
     return allDrivers
+  }
+
+  @MessagePattern('get_open_drivers')
+  public async getOpenDrivers(radius : number) : Promise<IDriver[]> {
+    const openDrivers : IDriver[] = await this.driverService.getOpenDrivers(radius)
+    return openDrivers
   }
 
   @MessagePattern('get_driver')

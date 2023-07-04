@@ -20,6 +20,12 @@ export class DriverService {
         return driverObject
     }
 
+    //To-Do : only return driver in a set km radius
+    public async getOpenDrivers(radius : number) : Promise<IDriver[]> {
+        const driverObject = await this.driverModel.find({'status' : true})
+        return driverObject
+    }
+
     public async getDriverById(driverId : string) : Promise<IDriver> {
         const driverObject = await this.driverModel.findOne({'driverId' : driverId})
         return driverObject
