@@ -42,6 +42,9 @@ export const CustomerSchema = new mongoose.Schema<ICustomer>(
       required: [true, "Password cannot be empty"],
       minLength: [8 , "Password should be atleast 8 chars long"]
     },
+    balance: {
+      type : Number
+    }
   }
 )
 
