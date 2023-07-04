@@ -56,7 +56,11 @@ export class DriverService {
     }
 
     public async loginDriver(driverId : string) : Promise<any> {
-        const token = await firstValueFrom(this.tokenService.send("create_token" , [driverId , "driver"]))
-        return (token)
+        //To-Do : add appropriate try catch blocks everywhere
+        const driverObject = await this.driverModel.findOne({driverId : driverId})
+        if(driverObject){
+            const token = await firstValueFrom(this.tokenService.send("create_token" , [driverId , "driver"]))
+            return (token)
+        }
     }
 }

@@ -30,9 +30,9 @@ export const DriverSchema = new mongoose.Schema<IDriver>(
     status: {
       type: Boolean
     },
-    driveLoc: {
-      type: GeoJSON
-    }
+    // driveLoc: {
+    //   type: GeoJSON
+    // }
 }
 )
 
