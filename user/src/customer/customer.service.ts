@@ -49,7 +49,11 @@ export class CustomerService {
     }
 
     public async loginCustomer(customerId : string) : Promise<any> {
-        const token = await firstValueFrom(this.tokenService.send("create_token" , [customerId , "customer"]))
-        return (token)
+        //To-Do : add appropriate try catch blocks everywhere
+        const customerObject = await this.customerModel.findOne({customerId : customerId})
+        if(customerObject){
+            const token = await firstValueFrom(this.tokenService.send("create_token" , [customerId , "customer"]))
+            return (token)
+        }
     }
 }
