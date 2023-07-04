@@ -3,9 +3,10 @@ import { UserController } from './user.controller';
 
 import { MongooseModule } from '@nestjs/mongoose';
 import { CustomerModule } from './customer/customer.module';
+import { DriverModule } from './driver/driver.module';
 
 @Module({
-  imports: [MongooseModule.forRoot('mongodb://localhost/uber-clone'), CustomerModule],
+  imports: [MongooseModule.forRoot('mongodb://localhost/uber-clone'), CustomerModule, DriverModule],
   controllers: [UserController]
 })
 export class UserModule {}
