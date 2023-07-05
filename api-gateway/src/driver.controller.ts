@@ -1,5 +1,6 @@
 import { Controller, Get , Inject , Post , Put , Delete, Res , Body , HttpStatus , Param, Query} from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
+import { response } from 'express';
 import { firstValueFrom } from 'rxjs';
 
 @Controller('driver')
@@ -55,6 +56,17 @@ export class DriverController {
     {
       return response.status(HttpStatus.CREATED).json({
         message: 'Driver has been created successfully',
+        data});
+    }
+  }
+
+  @Post('/updateLocation')
+  public async updateDriverLocation(@Res() response, @Body() currentLocation) : Promise<any>{
+    let data = await firstValueFrom(this.userServiceClient.send('update_location' , currentLocation))
+    console.log(data)
+    {
+      return response.status(HttpStatus.CREATED).json({
+        message: 'Driver location has been updated successfully',
         data});
     }
   }
