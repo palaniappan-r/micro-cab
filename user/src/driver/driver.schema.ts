@@ -1,7 +1,8 @@
 import * as bcrypt from 'bcrypt';
-import mongoose, { Types } from 'mongoose';
+import mongoose from 'mongoose';
+import { Schema } from 'mongoose';
 import { IDriver } from './driver.interface';
-import GeoJSON from 'geojson';
+import { GeoJsonObject } from 'geojson';
 
 export const DriverSchema = new mongoose.Schema<IDriver>(
   {
@@ -30,10 +31,10 @@ export const DriverSchema = new mongoose.Schema<IDriver>(
     status: {
       type: Boolean
     },
-    // driveLoc: {
-    //   type: GeoJSON
-    // }
-}
+    driveLoc: {
+      type: Object,
+    }
+  }
 )
 
 DriverSchema.methods.encryptPassword = (password : string) : Promise<string> => {
