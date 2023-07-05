@@ -7,7 +7,7 @@ import {v4 as uuidv4} from 'uuid';
 import { firstValueFrom } from 'rxjs';
 
 import { ClientProxy } from '@nestjs/microservices';
-import { GeoJsonTypes } from 'geojson';
+import { GeoJsonObject, GeoJsonTypes } from 'geojson';
 
 @Injectable()
 export class DriverService {
@@ -62,5 +62,13 @@ export class DriverService {
             const token = await firstValueFrom(this.tokenService.send("create_token" , [driverId , "driver"]))
             return (token)
         }
+    }
+
+    public async updateLocation(driverCurrentLocation : GeoJsonObject , driverId : string) : Promise<any> {
+        const driverObject = await this.driverModel.findOne({driverId : driverId})
+        if(driverObject){
+            driverObject.driveLoc = driverCurrentLocation
+        }
+        return driverObject.save()
     }
 }
