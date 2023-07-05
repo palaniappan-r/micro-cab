@@ -1,5 +1,5 @@
 import { Document } from 'mongoose';
-import { GeoJSON } from 'geojson';
+import { GeoJSON, GeoJsonObject } from 'geojson';
 
 export interface IDriver extends Document{
     driverId: string;
@@ -8,7 +8,7 @@ export interface IDriver extends Document{
     password: string;
     balance : number;
     status : boolean;
-    driveLoc : GeoJSON;
+    driveLoc : GeoJsonObject;
     comparePassword: (password: string) => Promise<boolean>; 
     encryptPassword: (password: string) => Promise<string>;
 }
