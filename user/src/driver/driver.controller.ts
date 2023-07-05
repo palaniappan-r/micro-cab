@@ -4,7 +4,7 @@ import { MessagePattern } from '@nestjs/microservices';
 import { IDriver } from './driver.interface';
 import { CreateDriverDto, UpdateDriverDto } from './driver.dto';
 import { DriverService } from './driver.service';
-import { GeoJsonTypes } from 'geojson';
+import { GeoJsonObject, GeoJsonTypes } from 'geojson';
 
 @Controller('driver')
 export class DriverController {
@@ -54,6 +54,13 @@ export class DriverController {
   public async loginDriver(driverId : string) : Promise<any> {
     const token = await this.driverService.loginDriver(driverId)
     return token
+  }
+
+  @MessagePattern('update_location')
+  public async updateLocation(driverCurrentLocation : GeoJsonObject) : Promise<any> {
+    let driverId = "6bc4e926-186f-4972-9baf-1ee2380a3ade"
+    const updatedDriver = await this.driverService.updateLocation(driverCurrentLocation , driverId)
+    return updatedDriver
   }
 
 }
