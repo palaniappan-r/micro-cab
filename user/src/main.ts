@@ -3,7 +3,11 @@ import { Transport } from '@nestjs/microservices';
 import { UserModule } from './user.module';
 import { ValidationPipe } from '@nestjs/common';
 
-let PORT = 3011
+import * as dotenv from 'dotenv';
+
+const userServicePort = parseInt(process.env.USER_SERVICE_PORT) || 3011;
+
+let PORT = userServicePort
 let HOST = '0.0.0.0'
 async function bootstrap() {
   const app = await NestFactory.createMicroservice(UserModule, {
