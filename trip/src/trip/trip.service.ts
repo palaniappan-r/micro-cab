@@ -5,7 +5,7 @@ import { CreateTripCustomerDto } from './trip.dto';
 import { Model } from 'mongoose';
 import { ITrip } from './trip.interface';
 import { firstValueFrom } from 'rxjs';
-
+import axios, { AxiosResponse } from 'axios';
 import {v4 as uuidv4} from 'uuid';
 
 import { ClientProxy } from '@nestjs/microservices';
@@ -24,7 +24,7 @@ export class TripService {
               "coordinates": createTripCustomerDto.startPt
             },
             "properties": {
-              "name": "Dinagat Islands 1"
+              "name": await convertCoordinatesToLocation(createTripCustomerDto.startPt[0], createTripCustomerDto.startPt[1])
             }
           }
         const endPt = {
@@ -34,7 +34,7 @@ export class TripService {
                 "coordinates": createTripCustomerDto.endPt
             },
             "properties": {
-                "name": "Dinagat Islands 2"
+                "name": await convertCoordinatesToLocation(createTripCustomerDto.endPt[0], createTripCustomerDto.endPt[1])
             }
         }
         
@@ -55,7 +55,27 @@ export class TripService {
 
         return newTrip
     }
-    public async getOpenTrips() : Promise<any>{
-        return "works"
+
+}
+
+async function convertCoordinatesToLocation(latitude: number, longitude: number): Promise<string> {
+    try {
+      const response: AxiosResponse = await axios.get('https://maps.googleapis.com/maps/api/geocode/json', {
+        params: {
+          latlng: `${latitude},${longitude}`,
+          key: process.env.GOOGLE_API_KEY ,
+        },
+      });
+  
+      const results = response.data.results;
+      if (results.length > 0) {
+        const formattedAddress = results[0].formatted_address;
+        return formattedAddress;
+      } else {
+        throw new Error('No results found for the provided coordinates.');
+      }
+    } catch (error) {
+      console.error('Error converting coordinates to location:', error.message);
+      throw error;
     }
 }
