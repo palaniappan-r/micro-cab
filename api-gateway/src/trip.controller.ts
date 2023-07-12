@@ -1,5 +1,6 @@
-import { Controller, Get , Inject , Post, Res , Body , HttpStatus} from '@nestjs/common';
+import { Controller, Get , Inject , Post, Put ,Res , Body , HttpStatus} from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
+import { response } from 'express';
 import { firstValueFrom } from 'rxjs';
 
 @Controller('trip')
@@ -29,4 +30,14 @@ export class TripController {
     }
   }
 
+  @Put('/update')
+  public async updateTripCustomer(@Res() response , @Body() updateTripCustomerDto) : Promise<any> {
+    const data = await firstValueFrom(this.tripServiceClient.send('update_trip_cust' , updateTripCustomerDto))
+  {
+    return response.status(HttpStatus.CREATED).json({
+      message: 'Trip has been updated successfully',
+      data
+      });
+  }
+  }
 }
