@@ -9,8 +9,11 @@ export class CreateTripCustomerDto {
     @IsNotEmpty()
     startPt: number[];
 
-    @IsString()
+    @IsNotEmpty()
     endPt : number[];
 }
 
-export class UpdateDriverDto extends PartialType(CreateTripCustomerDto) {}
+export class UpdateTripCustomerDto extends PartialType(CreateTripCustomerDto) {
+    @IsNotEmpty()
+    tripId : string
+}
