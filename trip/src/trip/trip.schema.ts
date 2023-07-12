@@ -29,6 +29,9 @@ export const TripSchema = new mongoose.Schema<ITrip>(
     },
     updatedAt:{
         type: Date
+    },
+    status:{
+        type: Boolean
     }
   })
 
