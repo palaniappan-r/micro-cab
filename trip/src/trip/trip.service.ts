@@ -17,45 +17,55 @@ export class TripService {
         @Inject('USER_SERVICE') private readonly userService: ClientProxy
         ) {}
     public async createTripCustomer(createTripCustomerDto : CreateTripCustomerDto) : Promise<any>{
-        const startPt = {
-            "type": "Feature",
-            "geometry": {
-              "type": "Point",
-              "coordinates": createTripCustomerDto.startPt
-            },
-            "properties": {
-              "name": await convertCoordinatesToLocation(createTripCustomerDto.startPt[0], createTripCustomerDto.startPt[1])
-            }
-          }
-        const endPt = {
-            "type": "Feature",
-            "geometry": {
+        try{
+            const startPt = {
+                "type": "Feature",
+                "geometry": {
                 "type": "Point",
-                "coordinates": createTripCustomerDto.endPt
-            },
-            "properties": {
-                "name": await convertCoordinatesToLocation(createTripCustomerDto.endPt[0], createTripCustomerDto.endPt[1])
+                "coordinates": createTripCustomerDto.startPt
+                },
+                "properties": {
+                "name": await convertCoordinatesToLocation(createTripCustomerDto.startPt[0], createTripCustomerDto.startPt[1])
+                }
             }
-        }
-        
-        const newTrip = await new this.tripModel();
-        const customerObj = await firstValueFrom(this.userService.send("get_cust" , createTripCustomerDto.customerId))
-        if(customerObj){
-            newTrip.customer = customerObj
-            newTrip.startPt = startPt
-            newTrip.endPt = endPt
-            newTrip.tripId = uuidv4();
-            newTrip.status = true
-        }
-        else{
-            throw new Error("No Customer Found")
+            const endPt = {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": createTripCustomerDto.endPt
+                },
+                "properties": {
+                    "name": await convertCoordinatesToLocation(createTripCustomerDto.endPt[0], createTripCustomerDto.endPt[1])
+                }
+            }
+            
+            const newTrip = await new this.tripModel();
+            const customerObj = await firstValueFrom(this.userService.send("get_cust" , createTripCustomerDto.customerId))
+            if(customerObj){
+                newTrip.customer = customerObj
+                newTrip.startPt = startPt
+                newTrip.endPt = endPt
+                newTrip.tripId = uuidv4();
+                newTrip.status = true
+
+                getRoadDistance(startPt[0] , startPt[1] , endPt[0] , endPt[1])
+                    .then((distance: number) => {
+                    newTrip.distance = distance
+                    })
+            }
+            else{
+                throw new Error("No Customer Found")
+            }
+
+            newTrip.save()
+
+            return newTrip
+        } catch(error) {
+            console.error(error.message);
+            throw error;
         }
 
-        newTrip.save()
-
-        return newTrip
     }
-
 }
 
 async function convertCoordinatesToLocation(latitude: number, longitude: number): Promise<string> {
@@ -63,7 +73,7 @@ async function convertCoordinatesToLocation(latitude: number, longitude: number)
       const response: AxiosResponse = await axios.get('https://maps.googleapis.com/maps/api/geocode/json', {
         params: {
           latlng: `${latitude},${longitude}`,
-          key: process.env.GOOGLE_API_KEY ,
+          key: process.env.GOOGLE_API_KEY
         },
       });
   
@@ -79,3 +89,21 @@ async function convertCoordinatesToLocation(latitude: number, longitude: number)
       throw error;
     }
 }
+
+  async function getRoadDistance(originLatitude: number, originLongitude: number, destinationLatitude: number, destinationLongitude: number): Promise<number> {
+    try {
+      const response = await axios.get('https://maps.googleapis.com/maps/api/distancematrix/json', {
+        params: {
+          origins: `${originLatitude},${originLongitude}`,
+          destinations: `${destinationLatitude},${destinationLongitude}`,
+          key: process.env.GOOGLE_API_KEY,
+        },
+      });
+  
+      const distance = response.data.rows[0].elements[0].distance.value;
+      return distance;
+    } catch (error) {
+      console.error('Error retrieving road distance:', error.message);
+      throw error;
+    }
+  }
