@@ -10,13 +10,13 @@ export class TripController {
     constructor(private readonly tripService: TripService) { }
 
   @MessagePattern('create_trip_cust')
-  public async createTripCustomer(createTripCustomerDto : CreateTripCustomerDto) : Promise<CreateTripCustomerDto> {
+  public async createTripCustomer(createTripCustomerDto : CreateTripCustomerDto) : Promise<ITrip> {
     const newTrip = await this.tripService.createTripCustomer(createTripCustomerDto)
     return newTrip
   }
 
   @MessagePattern('update_trip_cust')
-  public async updateTripCustomer(updateTripCustomerDto : UpdateTripCustomerDto) : Promise<UpdateTripCustomerDto> {
+  public async updateTripCustomer(updateTripCustomerDto : UpdateTripCustomerDto) : Promise<ITrip> {
     const editedTrip = await this.tripService.updateTripCustomer(updateTripCustomerDto)
     return editedTrip
   }
