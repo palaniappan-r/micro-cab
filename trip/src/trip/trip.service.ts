@@ -17,7 +17,7 @@ export class TripService {
         @Inject('USER_SERVICE') private readonly userService: ClientProxy
         ) {}
 
-    public async createTripCustomer(createTripCustomerDto : CreateTripCustomerDto) : Promise<any>{
+    public async createTripCustomer(createTripCustomerDto : CreateTripCustomerDto) : Promise<ITrip>{
         try{
             const startPt = {
                 "type": "Feature",
@@ -72,7 +72,7 @@ export class TripService {
         }
     }
 
-    public async updateTripCustomer(updateTripCustomerDto : UpdateTripCustomerDto) : Promise<any>{
+    public async updateTripCustomer(updateTripCustomerDto : UpdateTripCustomerDto) : Promise<ITrip>{
         try{
             const existingTrip : any = await this.tripModel.findOne({'tripId' : updateTripCustomerDto.tripId});
            
@@ -125,6 +125,17 @@ export class TripService {
         }
 
     }
+    
+    public async getOpenTrips() : Promise<ITrip[]>{
+        try{
+            const tripObject = await this.tripModel.find({'status' : true})
+            return tripObject
+        }
+        catch(error){
+            console.error('Error accessing database', error.message);
+            throw error;
+        }
+    }
 }
 
 async function convertCoordinatesToLocation(latitude: number, longitude: number): Promise<string> {
@@ -132,10 +143,9 @@ async function convertCoordinatesToLocation(latitude: number, longitude: number)
       const response: AxiosResponse = await axios.get('https://maps.googleapis.com/maps/api/geocode/json', {
         params: {
           latlng: `${latitude},${longitude}`,
-          key: process.env.GOOGLE_API_KEY ,
+          key: process.env.GOOGLE_API_KEY 
         },
       });
-  
       const results = response.data.results;
       if (results.length > 0) {
         const formattedAddress = results[0].formatted_address;
@@ -155,7 +165,7 @@ async function convertCoordinatesToLocation(latitude: number, longitude: number)
         params: {
           origins: `${originLatitude},${originLongitude}`,
           destinations: `${destinationLatitude},${destinationLongitude}`,
-          key: process.env.GOOGLE_API_KEY ,
+          key: process.env.GOOGLE_API_KEY 
         },
       });
       console.log()
