@@ -24,7 +24,7 @@ export class TripController {
     const data = await firstValueFrom(this.tripServiceClient.send('get_open_trips' , ""))
     {
       return response.status(HttpStatus.CREATED).json({
-        message: 'Trip has been created successfully',
+        message: 'Trip has been found successfully',
         data
         });
     }
