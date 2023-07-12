@@ -1,8 +1,8 @@
 import { Injectable , Inject } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { GeoJSON, GeoJsonObject } from 'geojson';
-import { CreateTripCustomerDto } from './trip.dto';
-import { Model } from 'mongoose';
+import { CreateTripCustomerDto, UpdateTripCustomerDto } from './trip.dto';
+import { AnyObject, Model } from 'mongoose';
 import { ITrip } from './trip.interface';
 import { firstValueFrom } from 'rxjs';
 import axios, { AxiosResponse } from 'axios';
@@ -16,6 +16,7 @@ export class TripService {
         @InjectModel('Trip') private tripModel:Model<ITrip>,
         @Inject('USER_SERVICE') private readonly userService: ClientProxy
         ) {}
+
     public async createTripCustomer(createTripCustomerDto : CreateTripCustomerDto) : Promise<any>{
         try{
             const startPt = {
@@ -47,11 +48,16 @@ export class TripService {
                 newTrip.endPt = endPt
                 newTrip.tripId = uuidv4();
                 newTrip.status = true
+                newTrip.createdAt = new Date()
+                newTrip.updatedAt = new Date()
 
-                getRoadDistance(startPt[0] , startPt[1] , endPt[0] , endPt[1])
-                    .then((distance: number) => {
+                await getRoadDistance(startPt.geometry.coordinates[0], startPt.geometry.coordinates[1], endPt.geometry.coordinates[0], endPt.geometry.coordinates[1])
+                .then((distance: number) => {
                     newTrip.distance = distance
-                    })
+                })
+                .catch((error: Error) => {
+                    console.error('Failed to retrieve road distance:', error);
+                });
             }
             else{
                 throw new Error("No Customer Found")
@@ -60,6 +66,59 @@ export class TripService {
             newTrip.save()
 
             return newTrip
+        } catch(error) {
+            console.error(error.message);
+            throw error;
+        }
+    }
+
+    public async updateTripCustomer(updateTripCustomerDto : UpdateTripCustomerDto) : Promise<any>{
+        try{
+            const existingTrip : any = await this.tripModel.findOne({'tripId' : updateTripCustomerDto.tripId});
+           
+            if(existingTrip.customer.customerId !== updateTripCustomerDto.customerId){
+                throw new Error("Customer not authorized to edit trip")
+            }
+
+            const startPt = {
+                "type": "Feature",
+                "geometry": {
+                "type": "Point",
+                "coordinates": updateTripCustomerDto.startPt
+                },
+                "properties": {
+                "name": await convertCoordinatesToLocation(updateTripCustomerDto.startPt[0], updateTripCustomerDto.startPt[1])
+                }
+            }
+            const endPt = {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": updateTripCustomerDto.endPt
+                },
+                "properties": {
+                    "name": await convertCoordinatesToLocation(updateTripCustomerDto.endPt[0], updateTripCustomerDto.endPt[1])
+                }
+            }
+            
+            if(startPt || endPt){
+                existingTrip.startPt = startPt
+                existingTrip.endPt = endPt
+                existingTrip.status = true
+                existingTrip.updatedAt = new Date()
+                
+                await getRoadDistance(startPt.geometry.coordinates[0], startPt.geometry.coordinates[1], endPt.geometry.coordinates[0], endPt.geometry.coordinates[1])
+                .then((distance: number) => {
+                    existingTrip.distance = distance
+                })
+                .catch((error: Error) => {
+                    console.error('Failed to retrieve road distance:', error);
+                });
+            }
+
+            existingTrip.save()
+
+            return existingTrip
         } catch(error) {
             console.error(error.message);
             throw error;
@@ -73,7 +132,7 @@ async function convertCoordinatesToLocation(latitude: number, longitude: number)
       const response: AxiosResponse = await axios.get('https://maps.googleapis.com/maps/api/geocode/json', {
         params: {
           latlng: `${latitude},${longitude}`,
-          key: process.env.GOOGLE_API_KEY
+          key: process.env.GOOGLE_API_KEY ,
         },
       });
   
@@ -96,12 +155,17 @@ async function convertCoordinatesToLocation(latitude: number, longitude: number)
         params: {
           origins: `${originLatitude},${originLongitude}`,
           destinations: `${destinationLatitude},${destinationLongitude}`,
-          key: process.env.GOOGLE_API_KEY,
+          key: process.env.GOOGLE_API_KEY ,
         },
       });
-  
-      const distance = response.data.rows[0].elements[0].distance.value;
-      return distance;
+      console.log()
+      if(response.data.rows[0].elements[0].distance.value){
+        const distance = response.data.rows[0].elements[0].distance.value;
+        return distance;
+      }
+      else{
+        throw new Error("Failed to calculate distance")
+      }
     } catch (error) {
       console.error('Error retrieving road distance:', error.message);
       throw error;
