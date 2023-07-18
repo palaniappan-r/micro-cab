@@ -6,6 +6,6 @@ export interface ICustomer extends Document{
     email : string;
     password: string;
     balance : number;
-    comparePassword: (password: string) => Promise<boolean>; 
+    compareCustPassword: (password: string) => Promise<boolean>; 
     encryptPassword: (password: string) => Promise<string>;
 }
