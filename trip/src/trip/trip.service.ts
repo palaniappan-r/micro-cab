@@ -136,7 +136,7 @@ export class TripService {
       }
   }
   
-  public async acceptTripDriver(acceptTripDriverDto : AcceptTripDriverDto) : Promise<ITrip[]>{
+  public async acceptTripDriver(acceptTripDriverDto : AcceptTripDriverDto) : Promise<ITrip>{
     try{
         const tripObject : any = await this.tripModel.find({'driverId' : acceptTripDriverDto.driverId})
         const driverObj = await firstValueFrom(this.userService.send("get_driver" , acceptTripDriverDto.driverId))
