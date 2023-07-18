@@ -9,6 +9,8 @@ import { firstValueFrom } from 'rxjs';
 import { ClientProxy } from '@nestjs/microservices';
 import { GeoJsonObject, GeoJsonTypes } from 'geojson';
 
+import * as bcrypt from 'bcrypt';
+
 @Injectable()
 export class DriverService {
     constructor(
@@ -28,7 +30,9 @@ export class DriverService {
     }
 
     public async getDriverById(driverId : string) : Promise<IDriver> {
+        console.log(driverId)
         const driverObject = await this.driverModel.findOne({'driverId' : driverId})
+        console.log(driverObject)
         return driverObject
     }
 
@@ -43,7 +47,8 @@ export class DriverService {
         const driverObject = await this.driverModel.findOne({'driverId' : driverId})
         if(driverObject){
             const updatedDriver = await this.driverModel.findByIdAndUpdate(driverObject._id , updateDriverReq)
-            return updatedDriver.save()
+            updatedDriver.save()
+            return updatedDriver
         }
     }
 
@@ -55,12 +60,16 @@ export class DriverService {
         }
     }
 
-    public async loginDriver(driverId : string) : Promise<any> {
+    public async loginDriver(driverId : string , password : string) : Promise<any> {
         //To-Do : add appropriate try catch blocks everywhere
         const driverObject = await this.driverModel.findOne({driverId : driverId})
-        if(driverObject){
-            const token = await firstValueFrom(this.tokenService.send("create_token" , [driverId , "driver"]))
+        const flag = await (bcrypt.compare(password  , driverObject.password))
+        if(flag){
+            const token = await firstValueFrom(this.tokenService.send("create_token" , [driverObject.driverId , "driver"]))
             return (token)
+        }
+        else{
+            console.error("Wrong Password")
         }
     }
 

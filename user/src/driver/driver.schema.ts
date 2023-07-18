@@ -42,10 +42,6 @@ DriverSchema.methods.encryptPassword = (password : string) : Promise<string> => 
   return bcrypt.hash(String(password), salt_rounds);
 }
 
-DriverSchema.methods.comparePassword = (password1 : string , password2 : string) : boolean => {
-  return bcrypt.compare(password1  , password2)
-}
-
 DriverSchema.pre('save' , async function (next) {
   if(!this.isModified('password')){
     next()

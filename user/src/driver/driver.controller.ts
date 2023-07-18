@@ -51,8 +51,8 @@ export class DriverController {
   }
   
   @MessagePattern('login_driver')
-  public async loginDriver(driverId : string) : Promise<any> {
-    const token = await this.driverService.loginDriver(driverId)
+  public async loginDriver(payload : string[]) : Promise<any> {
+    const token = await this.driverService.loginDriver(payload[0] , payload[1])
     return token
   }
 
