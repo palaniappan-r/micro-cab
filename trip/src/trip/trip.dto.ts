@@ -17,6 +17,15 @@ export class CreateTripCustomerDto {
 export class UpdateTripCustomerDto extends PartialType(CreateTripCustomerDto) {
     @IsNotEmpty()
     tripId : string
+
+    @IsNotEmpty()
+    customerId: string;
+    
+    @IsNotEmpty()
+    startPt: number[];
+
+    @IsNotEmpty()
+    endPt : number[];
 }
 
 export class AcceptTripDriverDto {
