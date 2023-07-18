@@ -71,17 +71,17 @@ export class DriverController {
     }
   }
 
-  // @UseGuards(AuthGuard('jwt') , RolesGuard)
-  // @Post('/updateLocation')
-  // public async updateDriverLocation(@Res() response, @Body() currentLocation) : Promise<any>{
-  //   let data = await firstValueFrom(this.userServiceClient.send('update_location' , currentLocation))
-  //   console.log(data)
-  //   {
-  //     return response.status(HttpStatus.CREATED).json({
-  //       message: 'Driver location has been updated successfully',
-  //       data});
-  //   }
-  // }
+  @UseGuards(AuthGuard('jwt') , RolesGuard)
+  @Post('/updateLocation')
+  public async updateDriverLocation(@Res() response, @Body() currentLocation) : Promise<any>{
+    const user = this.userService.getUser()
+    let data = await firstValueFrom(this.userServiceClient.send('update_location' , [currentLocation.location , user.userId]))
+    {
+      return response.status(HttpStatus.CREATED).json({
+        message: 'Driver location has been updated successfully',
+        data});
+    }
+  }
 
   //To-Do : only update the logged in user
   @UseGuards(AuthGuard('jwt') , RolesGuard)
