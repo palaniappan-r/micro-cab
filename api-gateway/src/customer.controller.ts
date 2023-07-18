@@ -5,7 +5,7 @@ import { firstValueFrom } from 'rxjs';
 import { HasRoles } from './auth/roles.decorator';
 import { Role } from './auth/role.enum';
 import { RolesGuard } from './auth/role.guard';
-
+import { UserService } from './auth/user.service'; 
 import { AuthGuard } from '@nestjs/passport';
 
 
@@ -13,7 +13,8 @@ import { AuthGuard } from '@nestjs/passport';
 @Controller('customer')
 export class CustomerController {
   constructor(
-    @Inject('USER_SERVICE') private readonly userServiceClient: ClientProxy
+    @Inject('USER_SERVICE') private readonly userServiceClient: ClientProxy,
+    private userService : UserService
     ) {}
 
   @Post('/create')
@@ -26,9 +27,9 @@ export class CustomerController {
     }
   }
 
-  @Get('/login')
-  public async test(@Res() response , @Query() params : any): Promise<any> {
-    let data = await firstValueFrom(this.userServiceClient.send('login_cust' , params.customerId))
+  @Post('/login')
+  public async test(@Res() response , @Body() loginDto : any): Promise<any> {
+    let data = await firstValueFrom(this.userServiceClient.send('login_cust' , [loginDto.customerId , loginDto.password]))
     {
       return response.status(HttpStatus.FOUND).json({
         message: 'Customer has been logged in',
@@ -48,7 +49,7 @@ export class CustomerController {
   }
 
   @UseGuards(AuthGuard('jwt') , RolesGuard)
-  @Get('/findById')
+  @Get('/getById')
   public async getCustomer(@Res() response , @Query() params : any): Promise<any> {
     let data = await firstValueFrom(this.userServiceClient.send('get_cust' , params.customerId))
     {
@@ -60,9 +61,9 @@ export class CustomerController {
 
   @UseGuards(AuthGuard('jwt') , RolesGuard)
   @Put('/update')
-  public async updateCustomerById(@Res() response, @Body() updateCustomerDto , @Query() params : any) : Promise<any>{
-    //For now, the customerId is passed as a query param, later, it'll be taken from the auth cookie
-    const payload = [updateCustomerDto , params.customerId]
+  public async updateCustomerById(@Res() response, @Body() updateCustomerDto) : Promise<any>{
+    const user = this.userService.getUser()
+    const payload = [updateCustomerDto , user.userId]
     let data = await firstValueFrom(this.userServiceClient.send('update_cust' , payload))
     {
       return response.status(HttpStatus.CREATED).json({
@@ -74,8 +75,9 @@ export class CustomerController {
   //To-Do : Chk if user is logged in first
   @UseGuards(AuthGuard('jwt') , RolesGuard)
   @Delete('/delete')
-  public async deleteCustomerBuId(@Res() response, @Query() params : any) : Promise<any>{
-    let data = await firstValueFrom(this.userServiceClient.send('delete_cust' , params.customerId))
+  public async deleteCustomerBuId(@Res() response) : Promise<any>{
+    const user = this.userService.getUser()
+    let data = await firstValueFrom(this.userServiceClient.send('delete_cust' , user.userId))
     {
       return response.status(HttpStatus.CONTINUE).json({
         message: 'Customer has been deleted successfully',
