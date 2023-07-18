@@ -44,8 +44,8 @@ export class CustomerController {
   }
   
   @MessagePattern('login_cust')
-  public async loginCustomer(customerId : string) : Promise<any> {
-    const token = await this.customerService.loginCustomer(customerId)
+  public async loginCustomer(payload : string[]) : Promise<any> {
+    const token = await this.customerService.loginCustomer(payload[0] , payload[1])
     return token
   }
 
