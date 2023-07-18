@@ -2,7 +2,7 @@ import { Controller } from '@nestjs/common';
 import { MessagePattern } from '@nestjs/microservices';
 
 import { TripService } from './trip.service';
-import { CreateTripCustomerDto, UpdateTripCustomerDto } from './trip.dto';
+import { AcceptTripDriverDto, CancelTripDriverDto, CreateTripCustomerDto, EndTripDriverDto, UpdateTripCustomerDto } from './trip.dto';
 import { ITrip } from './trip.interface';
 
 @Controller('trip')
@@ -22,8 +22,26 @@ export class TripController {
   }
 
   @MessagePattern('get_open_trips')
-  public async getOpenTrips() : Promise<any> {
+  public async getOpenTrips() : Promise<ITrip[]> {
     const openTrips = this.tripService.getOpenTripsDriver()
     return openTrips 
+  }
+
+  @MessagePattern('accept_trip_driver')
+  public async acceptTripDriver(acceptTripDriverDto : AcceptTripDriverDto) : Promise<ITrip>{
+    const tripObj = await this.tripService.acceptTripDriver(acceptTripDriverDto)
+    return tripObj
+  }
+
+  @MessagePattern('cancel_trip_driver')
+  public async cancelTripDriver(cancelTripDriverDto : CancelTripDriverDto) : Promise<ITrip>{
+    const tripObj = await this.tripService.cancelTripDriver(cancelTripDriverDto)
+    return tripObj
+  }
+
+  @MessagePattern('end_trip_driver')
+  public async endTripDriver(endTripDriverDto : EndTripDriverDto) : Promise<ITrip>{
+    const tripObj = await this.tripService.endTripDriver(endTripDriverDto)
+    return tripObj
   }
 }
