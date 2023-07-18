@@ -9,6 +9,7 @@ import * as dotenv from 'dotenv';
 import { PassportModule, PassportSerializer } from '@nestjs/passport';
 
 import { JwtStrategy } from './auth/jwt.strategy';
+import { UserService } from './auth/user.service';
 
 const userServicePort = parseInt(process.env.USER_SERVICE_PORT) || 3011;
 const tripServicePort = parseInt(process.env.TRIP_SERVICE_PORT) || 3013;
@@ -21,7 +22,7 @@ const tripServicePort = parseInt(process.env.TRIP_SERVICE_PORT) || 3013;
     ])
   ],
   controllers: [CustomerController , DriverController , TripController],
-  providers: [JwtStrategy],
+  providers: [JwtStrategy , UserService],
 })
 export class AppModule {}
 
