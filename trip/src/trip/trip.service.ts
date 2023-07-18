@@ -1,7 +1,7 @@
 import { Injectable , Inject } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { GeoJSON, GeoJsonObject } from 'geojson';
-import { CreateTripCustomerDto, UpdateTripCustomerDto } from './trip.dto';
+import { AcceptTripDriverDto, CreateTripCustomerDto, UpdateTripCustomerDto } from './trip.dto';
 import { AnyObject, Model } from 'mongoose';
 import { ITrip } from './trip.interface';
 import { firstValueFrom } from 'rxjs';
@@ -12,130 +12,152 @@ import { ClientProxy } from '@nestjs/microservices';
 
 @Injectable()
 export class TripService {
-    constructor(
-        @InjectModel('Trip') private tripModel:Model<ITrip>,
-        @Inject('USER_SERVICE') private readonly userService: ClientProxy
-        ) {}
+  constructor(
+      @InjectModel('Trip') private tripModel:Model<ITrip>,
+      @Inject('USER_SERVICE') private readonly userService: ClientProxy
+      ) {}
 
-    public async createTripCustomer(createTripCustomerDto : CreateTripCustomerDto) : Promise<ITrip>{
-        try{
-            const startPt = {
-                "type": "Feature",
-                "geometry": {
-                "type": "Point",
-                "coordinates": createTripCustomerDto.startPt
-                },
-                "properties": {
-                "name": await convertCoordinatesToLocation(createTripCustomerDto.startPt[0], createTripCustomerDto.startPt[1])
+  public async createTripCustomer(createTripCustomerDto : CreateTripCustomerDto) : Promise<ITrip>{
+      try{
+          const startPt = {
+              "type": "Feature",
+              "geometry": {
+              "type": "Point",
+              "coordinates": createTripCustomerDto.startPt
+              },
+              "properties": {
+              "name": await convertCoordinatesToLocation(createTripCustomerDto.startPt[0], createTripCustomerDto.startPt[1])
+              }
+          }
+          const endPt = {
+              "type": "Feature",
+              "geometry": {
+                  "type": "Point",
+                  "coordinates": createTripCustomerDto.endPt
+              },
+              "properties": {
+                  "name": await convertCoordinatesToLocation(createTripCustomerDto.endPt[0], createTripCustomerDto.endPt[1])
                 }
-            }
-            const endPt = {
-                "type": "Feature",
-                "geometry": {
-                    "type": "Point",
-                    "coordinates": createTripCustomerDto.endPt
-                },
-                "properties": {
-                    "name": await convertCoordinatesToLocation(createTripCustomerDto.endPt[0], createTripCustomerDto.endPt[1])
-                }
-            }
-            
-            const newTrip = await new this.tripModel();
-            const customerObj = await firstValueFrom(this.userService.send("get_cust" , createTripCustomerDto.customerId))
-            if(customerObj){
-                newTrip.customer = customerObj
-                newTrip.startPt = startPt
-                newTrip.endPt = endPt
-                newTrip.tripId = uuidv4();
-                newTrip.status = true
-                newTrip.createdAt = new Date()
-                newTrip.updatedAt = new Date()
+          }
+          
+          const newTrip = await new this.tripModel();
+          const customerObj = await firstValueFrom(this.userService.send("get_cust" , createTripCustomerDto.customerId))
+          
+          if(!customerObj){
+            throw new Error("No Customer Found")
+          }
 
-                await getRoadDistance(startPt.geometry.coordinates[0], startPt.geometry.coordinates[1], endPt.geometry.coordinates[0], endPt.geometry.coordinates[1])
-                .then((distance: number) => {
-                    newTrip.distance = distance
-                })
-                .catch((error: Error) => {
-                    console.error('Failed to retrieve road distance:', error);
-                });
-            }
-            else{
-                throw new Error("No Customer Found")
-            }
+          newTrip.customer = customerObj
+          newTrip.startPt = startPt
+          newTrip.endPt = endPt
+          newTrip.tripId = uuidv4();
+          newTrip.status = true
+          newTrip.createdAt = new Date()
+          newTrip.updatedAt = new Date()
 
-            newTrip.save()
+          await getRoadDistance(startPt.geometry.coordinates[0], startPt.geometry.coordinates[1], endPt.geometry.coordinates[0], endPt.geometry.coordinates[1])
+          .then((distance: number) => {
+              newTrip.distance = distance
+          })
+          .catch((error: Error) => {
+              console.error('Failed to retrieve road distance:', error);
+          });
 
-            return newTrip
-        } catch(error) {
-            console.error(error.message);
-            throw error;
-        }
-    }
+          newTrip.save()
 
-    public async updateTripCustomer(updateTripCustomerDto : UpdateTripCustomerDto) : Promise<ITrip>{
-        try{
-            const existingTrip : any = await this.tripModel.findOne({'tripId' : updateTripCustomerDto.tripId});
-           
-            if(existingTrip.customer.customerId !== updateTripCustomerDto.customerId){
-                throw new Error("Customer not authorized to edit trip")
-            }
+          return newTrip
+      } catch(error) {
+          console.error(error.message);
+          throw error;
+      }
+  }
 
-            const startPt = {
-                "type": "Feature",
-                "geometry": {
-                "type": "Point",
-                "coordinates": updateTripCustomerDto.startPt
-                },
-                "properties": {
-                "name": await convertCoordinatesToLocation(updateTripCustomerDto.startPt[0], updateTripCustomerDto.startPt[1])
-                }
-            }
-            const endPt = {
-                "type": "Feature",
-                "geometry": {
-                    "type": "Point",
-                    "coordinates": updateTripCustomerDto.endPt
-                },
-                "properties": {
-                    "name": await convertCoordinatesToLocation(updateTripCustomerDto.endPt[0], updateTripCustomerDto.endPt[1])
-                }
-            }
-            
-            if(startPt || endPt){
-                existingTrip.startPt = startPt
-                existingTrip.endPt = endPt
-                existingTrip.status = true
-                existingTrip.updatedAt = new Date()
-                
-                await getRoadDistance(startPt.geometry.coordinates[0], startPt.geometry.coordinates[1], endPt.geometry.coordinates[0], endPt.geometry.coordinates[1])
-                .then((distance: number) => {
-                    existingTrip.distance = distance
-                })
-                .catch((error: Error) => {
-                    console.error('Failed to retrieve road distance:', error);
-                });
-            }
-
-            existingTrip.save()
-
-            return existingTrip
-        } catch(error) {
-            console.error(error.message);
-            throw error;
+  public async updateTripCustomer(updateTripCustomerDto : UpdateTripCustomerDto) : Promise<ITrip>{
+    try{
+        const existingTrip : any = await this.tripModel.findOne({'tripId' : updateTripCustomerDto.tripId});
+        
+        if(existingTrip.customer.customerId !== updateTripCustomerDto.customerId){
+            throw new Error("Customer not authorized to edit trip")
         }
 
+        const startPt = {
+            "type": "Feature",
+            "geometry": {
+            "type": "Point",
+            "coordinates": updateTripCustomerDto.startPt
+            },
+            "properties": {
+            "name": await convertCoordinatesToLocation(updateTripCustomerDto.startPt[0], updateTripCustomerDto.startPt[1])
+            }
+        }
+        const endPt = {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": updateTripCustomerDto.endPt
+            },
+            "properties": {
+                "name": await convertCoordinatesToLocation(updateTripCustomerDto.endPt[0], updateTripCustomerDto.endPt[1])
+            }
+        }
+        
+        if(startPt || endPt){
+            existingTrip.startPt = startPt
+            existingTrip.endPt = endPt
+            existingTrip.status = true
+            existingTrip.updatedAt = new Date()
+            
+            await getRoadDistance(startPt.geometry.coordinates[0], startPt.geometry.coordinates[1], endPt.geometry.coordinates[0], endPt.geometry.coordinates[1])
+            .then((distance: number) => {
+                existingTrip.distance = distance
+            })
+            .catch((error: Error) => {
+                console.error('Failed to retrieve road distance:', error);
+            });
+        }
+
+        existingTrip.save()
+
+        return existingTrip
+    } catch(error) {
+        console.error(error.message);
+        throw error;
     }
+  }
     
-    public async getOpenTrips() : Promise<ITrip[]>{
-        try{
-            const tripObject = await this.tripModel.find({'status' : true})
-            return tripObject
+  public async getOpenTripsDriver() : Promise<ITrip[]>{
+      try{
+          const tripObject = await this.tripModel.find({'status' : true})
+          return tripObject
+      }
+      catch(error){
+          console.error('Error accessing database', error.message);
+          throw error;
+      }
+  }
+  
+  public async acceptTripDriver(acceptTripDriverDto : AcceptTripDriverDto) : Promise<ITrip[]>{
+    try{
+        const tripObject : any = await this.tripModel.find({'driverId' : acceptTripDriverDto.driverId})
+        const driverObj = await firstValueFrom(this.userService.send("get_driver" , acceptTripDriverDto.driverId))
+
+        if(!driverObj){
+          throw new Error("Driver does not exist")
         }
-        catch(error){
-            console.error('Error accessing database', error.message);
-            throw error;
-        }
+
+        tripObject.driver = driverObj
+        tripObject.status = true
+        tripObject.price = acceptTripDriverDto.price
+
+        tripObject.save()
+
+        return tripObject
     }
+    catch(error){
+        console.error('Error accessing database', error.message);
+        throw error;
+    }
+  }
 }
 
 async function convertCoordinatesToLocation(latitude: number, longitude: number): Promise<string> {
@@ -159,7 +181,7 @@ async function convertCoordinatesToLocation(latitude: number, longitude: number)
     }
 }
 
-  async function getRoadDistance(originLatitude: number, originLongitude: number, destinationLatitude: number, destinationLongitude: number): Promise<number> {
+async function getRoadDistance(originLatitude: number, originLongitude: number, destinationLatitude: number, destinationLongitude: number): Promise<number> {
     try {
       const response = await axios.get('https://maps.googleapis.com/maps/api/distancematrix/json', {
         params: {
