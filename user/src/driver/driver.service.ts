@@ -73,7 +73,7 @@ export class DriverService {
         }
     }
 
-    public async updateLocation(driverCurrentLocation : GeoJsonObject , driverId : string) : Promise<any> {
+    public async updateLocation(driverCurrentLocation : number[] , driverId : string) : Promise<any> {
         const driverObject = await this.driverModel.findOne({driverId : driverId})
         if(driverObject){
             driverObject.driveLoc = driverCurrentLocation
