@@ -8,7 +8,7 @@ export interface IDriver extends Document{
     password: string;
     balance : number;
     status : boolean;
-    driveLoc : GeoJsonObject;
+    driveLoc : number[];
     comparePassword: (password: string) => Promise<boolean>; 
     encryptPassword: (password: string) => Promise<string>;
 }
