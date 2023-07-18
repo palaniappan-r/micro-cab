@@ -10,6 +10,7 @@ import {v4 as uuidv4} from 'uuid';
 
 import { ClientProxy } from '@nestjs/microservices';
 
+
 @Injectable()
 export class TripService {
   constructor(
@@ -52,6 +53,7 @@ export class TripService {
           newTrip.endPt = endPt
           newTrip.tripId = uuidv4();
           newTrip.openStatus = true
+          newTrip.endStatus = false 
           newTrip.createdAt = new Date()
           newTrip.updatedAt = new Date()
 
@@ -74,8 +76,9 @@ export class TripService {
 
   public async updateTripCustomer(updateTripCustomerDto : UpdateTripCustomerDto) : Promise<ITrip>{
     try{
+        console.log(updateTripCustomerDto)
         const existingTrip : any = await this.tripModel.findOne({'tripId' : updateTripCustomerDto.tripId});
-        
+
         if(existingTrip.customer.customerId !== updateTripCustomerDto.customerId){
             throw new Error("Customer not authorized to edit trip")
         }
@@ -104,7 +107,6 @@ export class TripService {
         if(startPt || endPt){
             existingTrip.startPt = startPt
             existingTrip.endPt = endPt
-            existingTrip.status = true
             existingTrip.updatedAt = new Date()
             
             await getRoadDistance(startPt.geometry.coordinates[0], startPt.geometry.coordinates[1], endPt.geometry.coordinates[0], endPt.geometry.coordinates[1])
@@ -138,8 +140,8 @@ export class TripService {
   
   public async acceptTripDriver(acceptTripDriverDto : AcceptTripDriverDto) : Promise<ITrip>{
     try{
-        const tripObject : any = await this.tripModel.find({'driverId' : acceptTripDriverDto.driverId})
-        const driverObj = await firstValueFrom(this.userService.send("get_driver" , acceptTripDriverDto.driverId))
+      const tripObject : any = await this.tripModel.findOne({'tripId' : acceptTripDriverDto.tripId});  
+      const driverObj = await firstValueFrom(this.userService.send("get_driver" , acceptTripDriverDto.driverId))
 
         if(!driverObj){
           throw new Error("Driver does not exist")
@@ -149,16 +151,13 @@ export class TripService {
           throw new Error("Trip does not exist")
         }
 
-        if(driverObj.status === false){
-          driverObj.status = true
-          driverObj.save()
-        }
-        else{
-          throw new Error("Driver is not open to accept trips")
+        if(!tripObject.openStatus){
+          throw new Error("Already assigned a driver")
         }
 
         tripObject.driver = driverObj
-        tripObject.status = true
+        tripObject.openStatus = false
+        tripObject.endStatus = false
         tripObject.price = acceptTripDriverDto.price
 
         tripObject.save()
@@ -173,7 +172,7 @@ export class TripService {
 
   public async cancelTripDriver(cancelTripDriverDto : CancelTripDriverDto) : Promise<ITrip>{
     try{
-      const tripObject : any = await this.tripModel.find({'driverId' : cancelTripDriverDto.driverId})
+      const tripObject : any = await this.tripModel.findOne({'tripId' : cancelTripDriverDto.tripId})
       const driverObj = await firstValueFrom(this.userService.send("get_driver" , cancelTripDriverDto.driverId))
 
       if(!driverObj){
@@ -187,9 +186,6 @@ export class TripService {
       if(tripObject.driver.driverId !== driverObj.driverId){
         throw new Error("Driver is not assigned to the trip")
       }
-
-      driverObj.status = false
-      driverObj.save()
 
       tripObject.driver = undefined
       tripObject.save()
@@ -202,10 +198,10 @@ export class TripService {
     }
   }
 
-  public async endTripDriver(cancelTripDriverDto : EndTripDriverDto) : Promise<ITrip>{
+  public async endTripDriver(endTripDriverDto : EndTripDriverDto) : Promise<ITrip>{
     try{
-      const tripObject : any = await this.tripModel.find({'driverId' : cancelTripDriverDto.driverId})
-      const driverObj = await firstValueFrom(this.userService.send("get_driver" , cancelTripDriverDto.driverId))
+      const tripObject : any = await this.tripModel.findOne({'tripId' : endTripDriverDto.tripId})
+      const driverObj = await firstValueFrom(this.userService.send("get_driver" , endTripDriverDto.driverId))
 
       if(!driverObj){
         throw new Error("Driver does not exist")
@@ -218,9 +214,6 @@ export class TripService {
       if(tripObject.driver.driverId !== driverObj.driverId){
         throw new Error("Driver is not assigned to the trip")
       }
-
-      driverObj.status = false
-      driverObj.save()
 
       tripObject.endStatus = true
       tripObject.openStatus = false
