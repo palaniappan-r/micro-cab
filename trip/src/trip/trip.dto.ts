@@ -29,3 +29,13 @@ export class AcceptTripDriverDto {
     @IsNotEmpty()
     price : number
 }
+
+export class CancelTripDriverDto {
+    @IsNotEmpty()
+    tripId : string
+
+    @IsNotEmpty()
+    driverId : string
+}
+
+export class EndTripDriverDto extends PartialType(CancelTripDriverDto){}
