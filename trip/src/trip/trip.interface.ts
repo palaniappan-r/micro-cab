@@ -11,5 +11,6 @@ export interface ITrip extends Document{
     price : number;
     createdAt : Date;
     updatedAt : Date;
-    status : boolean
+    openStatus : boolean;
+    endStatus : boolean;
 }
