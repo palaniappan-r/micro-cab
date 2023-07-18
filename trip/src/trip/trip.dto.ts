@@ -48,3 +48,10 @@ export class CancelTripDriverDto {
 }
 
 export class EndTripDriverDto extends PartialType(CancelTripDriverDto){}
+
+export class GetOpenTripsDto{
+    @IsNotEmpty()
+    driverId : string
+    @IsNotEmpty()
+    radius : number
+}
