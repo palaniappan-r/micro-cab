@@ -1,7 +1,7 @@
 import { Injectable , Inject } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { GeoJSON, GeoJsonObject } from 'geojson';
-import { AcceptTripDriverDto, CreateTripCustomerDto, UpdateTripCustomerDto } from './trip.dto';
+import { AcceptTripDriverDto, CancelTripDriverDto, CreateTripCustomerDto, EndTripDriverDto, UpdateTripCustomerDto } from './trip.dto';
 import { AnyObject, Model } from 'mongoose';
 import { ITrip } from './trip.interface';
 import { firstValueFrom } from 'rxjs';
@@ -51,7 +51,7 @@ export class TripService {
           newTrip.startPt = startPt
           newTrip.endPt = endPt
           newTrip.tripId = uuidv4();
-          newTrip.status = true
+          newTrip.openStatus = true
           newTrip.createdAt = new Date()
           newTrip.updatedAt = new Date()
 
@@ -127,7 +127,7 @@ export class TripService {
     
   public async getOpenTripsDriver() : Promise<ITrip[]>{
       try{
-          const tripObject = await this.tripModel.find({'status' : true})
+          const tripObject = await this.tripModel.find({'openStatus' : true})
           return tripObject
       }
       catch(error){
@@ -145,6 +145,18 @@ export class TripService {
           throw new Error("Driver does not exist")
         }
 
+        if(!tripObject){
+          throw new Error("Trip does not exist")
+        }
+
+        if(driverObj.status === false){
+          driverObj.status = true
+          driverObj.save()
+        }
+        else{
+          throw new Error("Driver is not open to accept trips")
+        }
+
         tripObject.driver = driverObj
         tripObject.status = true
         tripObject.price = acceptTripDriverDto.price
@@ -158,7 +170,73 @@ export class TripService {
         throw error;
     }
   }
+
+  public async cancelTripDriver(cancelTripDriverDto : CancelTripDriverDto) : Promise<ITrip>{
+    try{
+      const tripObject : any = await this.tripModel.find({'driverId' : cancelTripDriverDto.driverId})
+      const driverObj = await firstValueFrom(this.userService.send("get_driver" , cancelTripDriverDto.driverId))
+
+      if(!driverObj){
+        throw new Error("Driver does not exist")
+      }
+
+      if(!tripObject){
+        throw new Error("Trip does not exist")
+      }
+      
+      if(tripObject.driver.driverId !== driverObj.driverId){
+        throw new Error("Driver is not assigned to the trip")
+      }
+
+      driverObj.status = false
+      driverObj.save()
+
+      tripObject.driver = undefined
+      tripObject.save()
+
+      return tripObject
+    }
+    catch(error){
+      console.error('Error accessing database' , error.message);
+      throw error
+    }
+  }
+
+  public async endTripDriver(cancelTripDriverDto : EndTripDriverDto) : Promise<ITrip>{
+    try{
+      const tripObject : any = await this.tripModel.find({'driverId' : cancelTripDriverDto.driverId})
+      const driverObj = await firstValueFrom(this.userService.send("get_driver" , cancelTripDriverDto.driverId))
+
+      if(!driverObj){
+        throw new Error("Driver does not exist")
+      }
+
+      if(!tripObject){
+        throw new Error("Trip does not exist")
+      }
+      
+      if(tripObject.driver.driverId !== driverObj.driverId){
+        throw new Error("Driver is not assigned to the trip")
+      }
+
+      driverObj.status = false
+      driverObj.save()
+
+      tripObject.endStatus = true
+      tripObject.openStatus = false
+
+      tripObject.save()
+
+      return tripObject
+    }
+    catch(error){
+      console.error('Error accessing database' , error.message);
+      throw error
+    }
+  }
 }
+
+
 
 async function convertCoordinatesToLocation(latitude: number, longitude: number): Promise<string> {
     try {
