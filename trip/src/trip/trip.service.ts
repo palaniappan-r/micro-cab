@@ -1,7 +1,7 @@
 import { Injectable , Inject } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { GeoJSON, GeoJsonObject } from 'geojson';
-import { AcceptTripDriverDto, CancelTripDriverDto, CreateTripCustomerDto, EndTripDriverDto, UpdateTripCustomerDto } from './trip.dto';
+import { AcceptTripDriverDto, CancelTripDriverDto, CreateTripCustomerDto, EndTripDriverDto, GetOpenTripsDto, UpdateTripCustomerDto } from './trip.dto';
 import { AnyObject, Model } from 'mongoose';
 import { ITrip } from './trip.interface';
 import { firstValueFrom } from 'rxjs';
@@ -127,10 +127,29 @@ export class TripService {
     }
   }
     
-  public async getOpenTripsDriver() : Promise<ITrip[]>{
+  public async getOpenTripsDriver(getOpenTripsDto : GetOpenTripsDto) : Promise<ITrip[]>{
       try{
-          const tripObject = await this.tripModel.find({'openStatus' : true})
-          return tripObject
+          const tripObject : ITrip[] = await this.tripModel.find({})
+          const driverObj = await firstValueFrom(this.userService.send("get_driver" , getOpenTripsDto.driverId))
+
+          const availableTrips : ITrip[] = []
+          for(let i of tripObject){
+            let driverDistance = -1
+          
+            await getRoadDistance(i.startPt.geometry.coordinates[0], i.startPt.geometry.coordinates[1], driverObj.driveLoc[0], driverObj.driveLoc[1])
+            .then((distance: number) => {
+                driverDistance = distance
+            })
+            .catch((error: Error) => {
+                console.error('Failed to retrieve road distance:', error);
+            });
+
+            if(driverDistance < getOpenTripsDto.radius){
+              availableTrips.push(i)
+            }
+          }
+
+          return availableTrips
       }
       catch(error){
           console.error('Error accessing database', error.message);
@@ -236,7 +255,7 @@ async function convertCoordinatesToLocation(latitude: number, longitude: number)
       const response: AxiosResponse = await axios.get('https://maps.googleapis.com/maps/api/geocode/json', {
         params: {
           latlng: `${latitude},${longitude}`,
-          key: process.env.GOOGLE_API_KEY 
+          key: process.env.GOOGLE_API_KEY
         },
       });
       const results = response.data.results;
@@ -258,7 +277,7 @@ async function getRoadDistance(originLatitude: number, originLongitude: number, 
         params: {
           origins: `${originLatitude},${originLongitude}`,
           destinations: `${destinationLatitude},${destinationLongitude}`,
-          key: process.env.GOOGLE_API_KEY 
+          key: process.env.GOOGLE_API_KEY
         },
       });
       console.log()
