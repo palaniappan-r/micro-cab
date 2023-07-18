@@ -1,4 +1,4 @@
-import { Controller, Get , Inject , Post, Put ,Res , Body , HttpStatus , UseGuards, Delete} from '@nestjs/common';
+import { Controller, Get , Inject , Post, Put ,Res , Body , HttpStatus , UseGuards, Delete, Query} from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
 
@@ -33,12 +33,14 @@ export class TripController {
   
   @UseGuards(AuthGuard('jwt') , RolesGuard)
   @HasRoles(Role.DRIVER)
-  @Get('/open')
-  public async getOpenTrips(@Res() response) : Promise<any>{
-    const data = await firstValueFrom(this.tripServiceClient.send('get_open_trips' , ""))
+  @Post('/open')
+  public async getOpenTrips(@Res() response , @Query() getOpenTripsDto) : Promise<any>{
+    const user = this.userService.getUser()
+    getOpenTripsDto.driverId = user.userId 
+    const data = await firstValueFrom(this.tripServiceClient.send('get_open_trips' , getOpenTripsDto))
     {
       return response.status(HttpStatus.CREATED).json({
-        message: 'Trip has been found successfully',
+        message: 'Trips have been found successfully',
         data
         });
     }
