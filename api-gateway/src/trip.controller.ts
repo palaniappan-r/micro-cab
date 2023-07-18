@@ -69,6 +69,19 @@ export class TripController {
 
   @UseGuards(AuthGuard('jwt') , RolesGuard)
   @HasRoles(Role.DRIVER)
+  @Delete('/end')
+  public async endTripDriver(@Res() response , @Body() endTripDriverDto) : Promise<any> {
+    const data = await firstValueFrom(this.tripServiceClient.send('end_trip_driver' , endTripDriverDto))
+    {
+      return response.status(HttpStatus.CREATED).json({
+        message : 'Driver ended trip',
+        data
+      })
+    }
+  }
+
+  @UseGuards(AuthGuard('jwt') , RolesGuard)
+  @HasRoles(Role.DRIVER)
   @Delete('/cancel')
   public async cancelTripDriver(@Res() response , @Body() cancelTripDriverDto) : Promise<any> {
     const data = await firstValueFrom(this.tripServiceClient.send('cancel_trip_driver' , cancelTripDriverDto))
