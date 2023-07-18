@@ -30,7 +30,10 @@ export const TripSchema = new mongoose.Schema<ITrip>(
     updatedAt:{
         type: Date
     },
-    status:{
+    openStatus:{
+        type: Boolean
+    },
+    endStatus:{
         type: Boolean
     }
   })
