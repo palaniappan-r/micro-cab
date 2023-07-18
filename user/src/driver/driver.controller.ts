@@ -57,9 +57,8 @@ export class DriverController {
   }
 
   @MessagePattern('update_location')
-  public async updateLocation(driverCurrentLocation : GeoJsonObject) : Promise<any> {
-    let driverId = "6bc4e926-186f-4972-9baf-1ee2380a3ade"
-    const updatedDriver = await this.driverService.updateLocation(driverCurrentLocation , driverId)
+  public async updateLocation(payload : any) : Promise<any> {
+    const updatedDriver = await this.driverService.updateLocation(payload[0] , payload[1])
     return updatedDriver
   }
 
