@@ -23,7 +23,7 @@ export class TripController {
 
   @MessagePattern('get_open_trips')
   public async getOpenTrips() : Promise<any> {
-    const openTrips = this.tripService.getOpenTrips()
+    const openTrips = this.tripService.getOpenTripsDriver()
     return openTrips 
   }
 }
