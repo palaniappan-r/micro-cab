@@ -6,6 +6,8 @@ import { Model } from 'mongoose';
 import {v4 as uuidv4} from 'uuid';
 import { firstValueFrom } from 'rxjs';
 
+import * as bcrypt from 'bcrypt';
+
 import { ClientProxy } from '@nestjs/microservices';
 
 @Injectable()
@@ -27,7 +29,7 @@ export class CustomerService {
 
     public async createCustomer(createCustomerReq : CreateCustomerDto) : Promise<ICustomer> {
         const newCustomer = await new this.customerModel(createCustomerReq);
-        newCustomer.balance = 0;
+        newCustomer.balance = 100;
         newCustomer.customerId = uuidv4();
         return newCustomer.save();
     }
@@ -36,7 +38,9 @@ export class CustomerService {
         const customerObject = await this.customerModel.findOne({'customerId' : customerId})
         if(customerObject){
             const updatedCustomer = await this.customerModel.findByIdAndUpdate(customerObject._id , updateCustomerReq)
-            return updatedCustomer.save()
+            updatedCustomer.save()
+
+            return updatedCustomer
         }
     }
 
@@ -48,12 +52,16 @@ export class CustomerService {
         }
     }
 
-    public async loginCustomer(customerId : string) : Promise<any> {
+    public async loginCustomer(customerId: string , password: string) : Promise<any> {
         //To-Do : add appropriate try catch blocks everywhere
-        const customerObject = await this.customerModel.findOne({customerId : customerId})
-        if(customerObject){
-            const token = await firstValueFrom(this.tokenService.send("create_token" , [customerId , "customer"]))
+        const customerObject : ICustomer = await this.customerModel.findOne({customerId : customerId})
+        const flag = await (bcrypt.compare(password  , customerObject.password))
+        if(flag){
+            const token = await firstValueFrom(this.tokenService.send("create_token" , [customerObject.customerId , "customer"]))
             return (token)
+        }
+        else{
+            console.error("Wrong Password")
         }
     }
 }
