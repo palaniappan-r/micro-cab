@@ -32,7 +32,7 @@ export const DriverSchema = new mongoose.Schema<IDriver>(
       type: Boolean
     },
     driveLoc: {
-      type: Object,
+      type: [Number],
     }
   }
 )
