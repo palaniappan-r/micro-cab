@@ -17,6 +17,7 @@ export class TripController {
 
   @MessagePattern('update_trip_cust')
   public async updateTripCustomer(updateTripCustomerDto : UpdateTripCustomerDto) : Promise<ITrip> {
+    console.log(updateTripCustomerDto)
     const editedTrip = await this.tripService.updateTripCustomer(updateTripCustomerDto)
     return editedTrip
   }
