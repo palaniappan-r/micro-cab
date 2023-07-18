@@ -2,7 +2,7 @@ import { Controller } from '@nestjs/common';
 import { MessagePattern } from '@nestjs/microservices';
 
 import { TripService } from './trip.service';
-import { AcceptTripDriverDto, CancelTripDriverDto, CreateTripCustomerDto, EndTripDriverDto, UpdateTripCustomerDto } from './trip.dto';
+import { AcceptTripDriverDto, CancelTripDriverDto, CreateTripCustomerDto, EndTripDriverDto, GetOpenTripsDto, UpdateTripCustomerDto } from './trip.dto';
 import { ITrip } from './trip.interface';
 
 @Controller('trip')
@@ -23,8 +23,8 @@ export class TripController {
   }
 
   @MessagePattern('get_open_trips')
-  public async getOpenTrips() : Promise<ITrip[]> {
-    const openTrips = this.tripService.getOpenTripsDriver()
+  public async getOpenTrips(getOpenTripsDto : GetOpenTripsDto) : Promise<ITrip[]> {
+    const openTrips = this.tripService.getOpenTripsDriver(getOpenTripsDto)
     return openTrips 
   }
 
